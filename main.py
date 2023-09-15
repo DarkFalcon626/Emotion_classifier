@@ -32,6 +32,7 @@ def run(param, model, data):
     
     optimizer = torch.optim.SGD(model.parameters(), lr = param['learning_rate'],
                                 momentum = param['momentum'])
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=param['step_size'], gamma = param['gamma'])
     
     loss = nn.BCELoss(reduction = 'mean')
     
@@ -94,6 +95,7 @@ def run(param, model, data):
         
         test_val = model.test(data, loss)
         cross_vals.append(test_val)
+        scheduler.step()
         
         if (epoch + 1) % param['display_epochs'] == 0:
             print('Epoch [{}/{}] ({:.2f}%)'.format(epoch+1, num_epochs,\
