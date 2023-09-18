@@ -33,7 +33,7 @@ def run(param, model, data):
     optimizer = torch.optim.SGD(model.parameters(), lr = param['learning_rate'],
                                 momentum = param['momentum'])
     
-    loss = nn.BCELoss(reduction = 'mean')
+    loss = nn.BCELoss(reduction='mean')
     
     loss_vals = []
     cross_vals = []
@@ -95,7 +95,7 @@ def run(param, model, data):
         test_val = model.test(data, loss)
         cross_vals.append(test_val)
         
-        if (epoch + 1) % param['display_epochs'] == 0:
+        if (epoch) % param['display_epochs'] == 0:
             print('Epoch [{}/{}] ({:.2f}%)'.format(epoch+1, num_epochs,\
                                                ((epoch + 1)/num_epochs)*100) + \
                   '\tTraining Lass: {:.4f}'.format(train_val) + \
@@ -106,6 +106,37 @@ def run(param, model, data):
     print('Final test loss: {:.4f}'.format(cross_vals[-1]))
     
     return loss_vals, cross_vals
+    
+
+def test_accuracy(model, data):
+    
+    results = []
+    test_data = []
+    emotion_size = data.test_data//data.num_emotions
+    
+    i = 0
+    for emotion in data.emotions:
+        test_data.append([])
+        for j in range(100):
+            test_data.append(data.test_data[i+j].float().reshape(1,1,data.res,data.res))
+        i += emotion_size
+    
+    for i in range(len(test_data)):
+        correct_count = 0
+        for img in test_data[i]:
+            index = int(torch.argmax(model.forward(img)))
+            if index == i:
+                correct_count += 1
+        results.append(correct_count)
+    
+    total_ac = sum(results)/data.num_emotions
+    
+    print('The models accerecy is {}%'.format(total_ac))
+    print('The model prediced the following emotions with the following accuracy')
+    for i in range(0,data.num_emotions):
+        print('{}: \t {}'.format(data.emotions[i],results[i]))
+    
+        
     
 
 
@@ -127,13 +158,20 @@ if __name__ == '__main__':
     data, model = prep(param["net"])
     loss_vals, cross_vals = run(param["exec"],model,data)
     
+    train_time = time.time()-start_time
+    if (train_time//600) > 0:
+        print('The model trained in {} hours, {} mins and {} seconds'.format(train_time//600,train_time-(train_time//600)*600,
+                                                                   train_time-(train_time//600)*600 - (train_time//60)*60))
+    elif (train_time//60) > 0:
+        print('The model trained in {} mins and {} seconds'.format(train_time//60,
+                                                               train_time-(train_time//60)*60))
+    else:
+        print('The model trained in {} seconds'.format(train_time))
+    
+    test_accuracy(model, data)
+    
     with open(args.model_file, 'wb') as f:
         pickle.dump(model, f)
     f.close()
-    
-    train_time = time.time()-start_time
-    print('The model trained in {} mins and {} seconds'.format(train_time//60,
-                                                               train_time-(train_time//60)*60))
-    
     
     

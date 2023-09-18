@@ -1,30 +1,42 @@
 {
 	"net":{
 		"kernal_1": 3,
-		"padding_1": 2,
+		"padding_1": 0,
 		"stride_1": 2,
-		"kernal_2": 2,
+		"kernal_2": 5,
 		"padding_2": 1,
 		"stride_2": 1,
-		"kernal_3": 2,
+		"kernal_3": 5,
 		"padding_3": 1,
 		"stride_3": 1,
-		"kernal_4": 2,
+		"kernal_4": 7,
 		"padding_4": 1,
-		"stride_4": 1,
+		"stride_4": 3,
+		"kernal_5": 3,
+		"padding_5": 0,
+		"stride_5": 2,
+		"pool_kernal_1": 2,
+		"pool_padding_1": 0,
+		"pool_stride_1": 2,
+		"pool_kernel_2": 2,
+		"pool_padding_2": 0,
+		"pool_stride_2": 1,
 		"hidden_1": 10457,
 		"hidden_2": 6975,
 		"conv1_out_channels": 10,
 		"conv2_out_channels": 15,
 		"conv3_out_channels": 25,
-		"conv4_out_channels": 50
+		"conv4_out_channels": 50,
+		"conv5_out_channels": 75
 	},
 	
 	"exec":{
-		"learning_rate": 0.001,
+		"learning_rate": 0.5,
 		"momentum": 0.01,
-		"num_epochs": 25,
-		"display_epochs": 3,
-		"num_batchs": 6
+		"num_epochs": 35,
+		"display_epochs": 1,
+		"num_batchs": 7,
+		"step_size": 15,
+		"gamma":0.2
 	}
 }

@@ -89,6 +89,8 @@ class Data():
 def conv_width(w, p, k, s):
     return 1 + (w + (2*p)-k)//s
 
+def pool_width(w, p, k, s):
+    return 1 + (w + (2*p)-(k-1))//s
 
 class Net(nn.Module):
     
@@ -108,6 +110,12 @@ class Net(nn.Module):
         
         width3 = conv_width(width2, p2, k2, s2)
         
+        pk1 = net_params['pool_kernal_1']
+        pp1 = net_params['pool_padding_1']
+        ps1 = net_params['pool_stride_1']
+        
+        pool_width1 = pool_width(width3, pp1, pk1, ps1)
+        
         k3 = net_params['kernal_3']
         p3 = net_params['padding_3']
         s3 = net_params['stride_3']
@@ -120,37 +128,68 @@ class Net(nn.Module):
         
         width5 = conv_width(width4, p4, k4, s4)
         
+        pk2 = net_params['pool_kernel_2']
+        pp2 = net_params['pool_padding_2']
+        ps2 = net_params['pool_stride_2']
+        
+        pool_width2 = pool_width(width5, pp2, pk2, ps2)
+        
+        k5 = net_params['kernal_5']
+        p5 = net_params['padding_5']
+        s5 = net_params['stride_5']
+        
+        width6 = conv_width(width5, p5, k5, s5)
+        
         conv1 = net_params['conv1_out_channels']
         conv2 = net_params['conv2_out_channels']
         conv3 = net_params['conv3_out_channels']
         conv4 = net_params['conv4_out_channels']
+        conv5 = net_params['conv5_out_channels']
         
         hidden1 = net_params['hidden_1']
         hidden2 = net_params['hidden_2']
         
+        
         self.layer1 = nn.Sequential(
             nn.Conv2d(1, conv1, k1, s1, p1),
             nn.ReLU())
+        self.batch1 = nn.BatchNorm2d(conv1)
         self.layer2 = nn.Sequential(
             nn.Conv2d(conv1, conv2, k2, s2, p2),
             nn.ReLU())
+        self.batch2 = nn.BatchNorm2d(conv2)
+        self.pool1 = nn.MaxPool2d(pk1,ps1,pp1)
         self.layer3 = nn.Sequential(
             nn.Conv2d(conv2, conv3, k3, s3, p3),
             nn.ReLU())
+        self.batch3 = nn.BatchNorm2d(conv3)
         self.layer4 = nn.Sequential(
             nn.Conv2d(conv3, conv4, k4, s4, p4),
             nn.ReLU())
+        self.pool2 = nn.MaxPool2d(pk2, ps2, pp2)
+        self.layer5 = nn.Sequential(
+            nn.Conv2d(conv4, conv5, k5, s5, p5),
+            nn.ReLU())
+        self.batch4 = nn.BatchNorm2d(conv5)
         self.drop_out = nn.Dropout()
-        self.fc1 = nn.Linear((width5**2)*conv4, hidden1)
+        self.fc1 = nn.Linear((width6**2)*conv5, hidden1)
         self.fc2 = nn.Linear(hidden1, hidden2)
         self.fc3 = nn.Linear(hidden2, data.num_emotions)
         
         
     def forward(self, x):
         x = self.layer1(x)
+#        x = self.batch1(x)
         x = self.layer2(x)
+#        x = self.batch2(x)
+#        x = self.pool1(x)
+        x = self.drop_out(x)
         x = self.layer3(x)
+        x = self.batch3(x)
         x = self.layer4(x)
+#        x = self.pool2(x)
+        x = self.layer5(x)
+        x = self.batch4(x)
         x = x.reshape(x.size(0),-1)
         x = self.drop_out(x)
         x = func.relu(self.fc1(x))
